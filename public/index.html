@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1f4d3a"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg">
+<title>LocalPON</title>
+<style>
+:root{--g:#1f4d3a;--gd:#173d2d;--o:#f2a93b;--bg:#f3f7f4;--ink:#18271f;--mut:#7b8a82;--red:#e0245e;--ok:#1f9d63;--ln:#e3ebe6}
+*{box-sizing:border-box;margin:0}
+body{font-family:Manrope,"Segoe UI",system-ui,sans-serif;background:#e4eae6;color:var(--ink)}
+#app{max-width:430px;min-height:100vh;margin:auto;background:var(--bg);position:relative;padding-bottom:84px;overflow:hidden}
+button,input,select{font:inherit;color:inherit}button{cursor:pointer;border:0;background:none}
+.top{background:var(--g);color:#fff;padding:22px 20px 56px;position:relative}
+.top small{font-size:11px;letter-spacing:.04em;color:#9fd1b8;font-weight:600}
+.top h1{font-size:24px;margin-top:2px}
+.row{display:flex;align-items:center;gap:10px}.sp{justify-content:space-between}
+.bell{width:40px;height:40px;border-radius:50%;background:#ffffff1f;color:#fff;font-size:17px}
+.search{margin-top:18px}.search input{color:var(--ink);flex:1;height:46px;border:0;border-radius:14px;padding:0 14px;background:#fff;outline:0}
+.scan{width:46px;height:46px;border-radius:14px;background:var(--o);font-size:20px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:-34px 16px 0;position:relative}
+.stat{background:#fff;border-radius:14px;padding:12px;box-shadow:0 4px 14px #1f4d3a14}
+.stat span{font-size:10px;color:var(--mut);font-weight:700}.stat b{display:block;font-size:20px;margin:4px 0 2px}.stat i{font-style:normal;font-size:10px;font-weight:600}
+.h2{font-size:17px;font-weight:800;margin:22px 20px 12px}
+.qa{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 16px}
+.qa button{border-radius:16px;padding:14px;display:flex;gap:10px;align-items:center;text-align:left;font-weight:800;font-size:14px}
+.qa small{display:block;font-weight:500;font-size:11px;color:var(--mut)}
+.qa .ic{width:38px;height:38px;border-radius:11px;color:#fff;font-size:20px;display:grid;place-items:center;flex:none}
+.chips{display:flex;gap:8px;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.chip{padding:9px 16px;border-radius:99px;background:#fff;border:1px solid var(--ln);font-size:13px;font-weight:600;white-space:nowrap}
+.chip.on{background:var(--gd);color:#fff;border-color:var(--gd)}
+.item{display:flex;align-items:center;gap:12px;background:#fff;border-radius:16px;padding:12px;margin:10px 16px 0;width:calc(100% - 32px);text-align:left}
+.item .ib{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:20px;flex:none}
+.item .nm{flex:1;min-width:0}.item b{display:block;font-size:14px}.item small{font-size:11px;color:var(--mut)}
+.item .q{text-align:right;font-weight:800;font-size:14px}.item .q small{display:block;font-weight:600}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:1px solid var(--ln);display:flex;padding:8px 6px calc(8px + env(safe-area-inset-bottom))}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--mut);padding:4px}
+.nav button span{padding:3px 16px;border-radius:99px;font-size:18px}.nav .on{color:var(--gd);font-weight:700}.nav .on span{background:#d9eee2}
+.login .top{padding-bottom:90px}.logo{display:flex;gap:10px;align-items:center}.logo i{width:42px;height:42px;border-radius:12px;background:var(--o);display:grid;place-items:center;font-style:normal}
+.login h2{font-size:30px;margin:46px 0 6px}.login p{color:#cfe5d9;font-size:14px}
+.card{background:#fff;border-radius:24px;padding:18px;margin:-60px 16px 0;position:relative;box-shadow:0 10px 30px #1f4d3a22}
+.tabs{display:flex;background:#eef2ef;border-radius:14px;padding:4px;margin-bottom:16px}.tabs button{flex:1;padding:11px;border-radius:11px;color:var(--mut);font-weight:600}.tabs .on{background:#fff;color:var(--ink)}
+label{display:block;font-size:12px;font-weight:700;margin:12px 0 6px}
+.in{width:100%;height:46px;border:1px solid var(--ln);border-radius:12px;padding:0 12px;background:#fff;outline:0}.in:focus{border-color:var(--g)}
+.btn{width:100%;height:48px;border-radius:12px;background:var(--gd);color:#fff;font-weight:700;margin-top:18px}.btn.alt{background:var(--o);color:#3a2600}.btn.ghost{background:#fff;border:1px solid var(--ln);color:var(--red)}
+.err{color:var(--red);font-size:12px;margin-top:10px;min-height:14px}
+.sheet{position:fixed;inset:0;background:#0007;display:flex;align-items:flex-end;justify-content:center;z-index:9}
+.sheet>div{background:#fff;width:100%;max-width:430px;border-radius:24px 24px 0 0;padding:20px;max-height:90vh;overflow:auto;animation:up .2s}
+@keyframes up{from{transform:translateY(30px);opacity:0}}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.empty{text-align:center;color:var(--mut);padding:30px 20px;font-size:14px}
+.pad{padding:18px 16px 0}.badge{display:inline-block;padding:4px 10px;border-radius:99px;font-size:12px;font-weight:700}
+.priv{max-height:52vh;overflow:auto;font-size:13px;line-height:1.55;margin:12px 0;padding-right:4px}.priv h3{font-size:14px;margin:16px 0 4px}.priv p,.priv ul{margin:0 0 8px}.priv ul{padding-left:18px}
+button:disabled{opacity:.6;cursor:default}
+.badge{border:0}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style></head><body><div id="app"></div>
+<script>
+const $=s=>document.querySelector(s),A=$('#app');
+const PROD_URL=''; // <- URL publicada del servidor, ej. 'https://localpon.up.railway.app' (solo para la APK)
+const API=localStorage.lp_api||(window.Capacitor?(PROD_URL||'http://10.0.2.2:3000'):'');
+/* ---------- IndexedDB ---------- */
+const db=new Promise(r=>{const q=indexedDB.open('localpon',1);q.onupgradeneeded=()=>['products','sales','users'].forEach(n=>q.result.createObjectStore(n,{keyPath:'id',autoIncrement:true}));q.onsuccess=()=>r(q.result)});
+const tx=async(s,m,f)=>{const d=await db;return new Promise((res,rej)=>{const t=d.transaction(s,m),q=f(t.objectStore(s));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error)})};
+const all=s=>tx(s,'readonly',o=>o.getAll()),put=(s,v)=>tx(s,'readwrite',o=>o.put(v)),del=(s,id)=>tx(s,'readwrite',o=>o.delete(id));
+const sha=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+/* ---------- estado ---------- */
+let S={PA:[],user:JSON.parse(localStorage.lp_user||'null'),tab:'home',cat:'Todos',per:'Día',mode:'login',srv:'',locked:false,notice:'',nLocal:0,bioOK:false,team:undefined,invites:undefined,seller:'Todos',sellerList:[],q:'',P:[],V:[]};
+const CAT={Herramientas:['#fff1c9','#d9822b'],Seguridad:['#dff0ff','#2b8ad9'],Almacenaje:['#ece4ff','#7a4fd9'],Otros:['#e3f3e8','#1f9d63']};
+const money=n=>'$'+Number(n).toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:2});
+const kfmt=n=>n>=1000?'$'+(n/1000).toFixed(1)+'k':'$'+n;
+const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function load(){S.PA=await all('products');S.V=await all('sales');
+ if(!S.PA.length&&!localStorage.lp_seed){localStorage.lp_seed=1;for(const p of [['Taladro inalámbrico','HER-0241','Herramientas',899,24],['Guantes de nitrilo','SEG-1089','Seguridad',45,7],['Caja organizadora','ALM-0318','Almacenaje',120,42]])await put('products',{name:p[0],sku:p[1],cat:p[2],price:p[3],qty:p[4],updated:0});S.PA=await all('products')}
+ S.P=S.PA.filter(p=>!p.deleted)}
+const nav=()=>`<nav class="nav">${[['home','⌂','Inicio'],['inv','▣','Inventario'],['rep','▥','Reportes'],['acc','☺','Cuenta']].map(([k,i,t])=>`<button class="${S.tab==k?'on':''}" onclick="go('${k}')"><span>${i}</span>${t}</button>`).join('')}</nav>`;
+function go(k){if(k==='acc')S.team=undefined;S.tab=k;draw()}
+const item=p=>{const c=CAT[p.cat]||CAT.Otros,low=p.qty<=10;return`<button class="item" onclick="prodForm(${p.id})"><div class="ib" style="background:${c[0]};color:${c[1]}">⬡</div><div class="nm"><b>${esc(p.name)}</b><small>${esc(p.sku)} · ${esc(p.cat)}</small></div><div class="q" style="color:${low?'var(--red)':'inherit'}">${p.qty} uds.<small style="color:${low?'var(--red)':'var(--ok)'}">${low?'Stock bajo':'Disponible'}</small></div></button>`};
+const match=p=>!S.q||(p.name+p.sku).toLowerCase().includes(S.q.toLowerCase());
+/* ---------- vistas ---------- */
+function draw(){
+ if(S.user&&S.locked){lockView();return}
+ if(!S.user){loginView();return}
+ const low=S.P.filter(p=>p.qty<=10).length,val=S.P.reduce((a,p)=>a+p.price*p.qty,0),cats=['Todos',...new Set(S.P.map(p=>p.cat))];
+ let v='';
+ if(S.tab=='home'){const list=S.P.filter(p=>(S.cat=='Todos'||p.cat==S.cat)&&match(p));
+  v=`<div class="top"><div class="row sp"><div><small>¡BIENVENIDO A LOCALPON</small><h1>Hola, ${esc(S.user.name)}</h1></div><button class="bell" onclick="sync(1)">🔔</button></div>
+  <div class="row search"><input id="q" placeholder="Buscar producto o SKU" value="${esc(S.q)}" oninput="S.q=this.value;keep()"><button class="scan" onclick="scanForm()">▦</button></div></div>
+  <div class="stats"><div class="stat"><span>PRODUCTOS</span><b>${S.P.length}</b><i style="color:var(--ok)">${S.P.reduce((a,p)=>a+p.qty,0)} uds.</i></div><div class="stat"><span>STOCK BAJO</span><b>${low}</b><i style="color:var(--red)">Revisar ahora</i></div><div class="stat"><span>VALOR TOTAL</span><b>${kfmt(val)}</b><i style="color:var(--mut)">En almacén</i></div></div>
+  <div class="h2">Acciones rápidas</div><div class="qa"><button style="background:#d6ecde" onclick="prodForm()"><span class="ic" style="background:var(--g)">+</span><span>Añadir producto<small>Nuevo registro</small></span></button><button style="background:#f8e6c8" onclick="scanForm()"><span class="ic" style="background:var(--o)">▦</span><span>Escanear<small>Entrada o salida</small></span></button></div>
+  <div class="row sp"><div class="h2" style="margin-right:0">Inventario reciente</div><button class="h2" style="color:var(--g);font-size:13px;margin-left:0" onclick="S.tab='inv';draw()">Ver todo</button></div>
+  <div class="chips">${cats.map(c=>`<button class="chip ${S.cat==c?'on':''}" onclick="S.cat='${c}';draw()">${c}</button>`).join('')}</div><div id="lst">${list.slice(0,6).map(item).join('')||'<div class="empty">Sin productos. Toca “Añadir producto”.</div>'}</div>`}
+ if(S.tab=='inv'){v=`<div class="top" style="padding-bottom:30px"><h1>Inventario</h1><div class="row search"><input id="q" placeholder="Buscar producto o SKU" value="${esc(S.q)}" oninput="S.q=this.value;keep()"><button class="scan" onclick="prodForm()">+</button></div></div><div id="lst">${S.P.filter(match).map(item).join('')||'<div class="empty">No hay productos.</div>'}</div>`}
+ if(S.tab=='rep'){const admin=S.user.rol==='admin',d=new Date(),t0=S.per=='Día'?new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime():Date.now()-(S.per=='Semana'?7:30)*864e5,
+   P=visibleSales().filter(s=>s.ts>=t0).sort((a,b)=>b.ts-a.ts),sm=new Map();
+  P.forEach(s=>{const k=s.by||'',e=sm.get(k)||{key:k,name:s.byName||s.by||S.user.name,n:0,total:0};e.n++;e.total+=s.total;sm.set(k,e)});
+  S.sellerList=[...sm.values()].sort((a,b)=>b.total-a.total);
+  if(admin&&S.seller!=='Todos'&&!sm.has(S.seller))S.seller='Todos';
+  const R=admin&&S.seller!=='Todos'?P.filter(s=>(s.by||'')===S.seller):P,tot=R.reduce((a,s)=>a+s.total,0),fi=R.filter(s=>s.pago=='fiado').reduce((a,s)=>a+s.total,0);
+  v=`<div class="top" style="padding-bottom:30px"><h1>Reportes</h1><small>${admin?'Ventas de tu equipo por periodo':'Mis ventas por periodo'}</small></div><div class="chips" style="margin-top:16px">${['Día','Semana','Mes'].map(p=>`<button class="chip ${S.per==p?'on':''}" onclick="S.per='${p}';draw()">${p}</button>`).join('')}</div>
+  ${admin&&S.sellerList.length?`<div class="chips" style="margin-top:10px"><button class="chip ${S.seller==='Todos'?'on':''}" onclick="pickSeller(-1)">Todos</button>${S.sellerList.map((e,i)=>`<button class="chip ${S.seller===e.key?'on':''}" onclick="pickSeller(${i})">${esc(e.name)}</button>`).join('')}</div>`:''}
+  <div class="stats" style="margin-top:14px"><div class="stat"><span>VENTAS</span><b>${R.length}</b></div><div class="stat"><span>TOTAL</span><b>${kfmt(tot)}</b></div><div class="stat"><span>FIADO</span><b style="color:var(--red)">${kfmt(fi)}</b></div></div>
+  ${admin&&S.seller==='Todos'&&S.sellerList.length?`<div class="card" style="margin:14px 16px 0;padding:14px"><b>Por vendedor</b>${S.sellerList.map(e=>`<div class="row sp" style="margin-top:10px"><span style="font-size:14px">${esc(e.name)}</span><span style="font-size:13px;color:var(--mut)">${e.n} venta${e.n==1?'':'s'} · <b style="color:var(--ink)">${money(e.total)}</b></span></div>`).join('')}</div>`:''}
+  ${R.map(s=>`<div class="item"><div class="nm"><b>${esc(s.name)} ×${s.qty}</b><small>${new Date(s.ts).toLocaleString('es-MX')} · ${s.pago=='fiado'?'Fiado: '+esc(s.cliente):'Efectivo'}${admin?' · Vendió: '+esc(s.byName||s.by||S.user.name):''}</small></div><div class="q">${money(s.total)}</div></div>`).join('')||'<div class="empty">Sin ventas en este periodo.</div>'}
+  <div class="pad"><button class="btn alt" onclick="exportCsv()">Exportar ventas (CSV)</button></div>`}
+ if(S.tab=='acc'){const pend=S.V.filter(s=>!s.synced&&(!s.by||s.by===S.user.email)).length,admin=S.user.rol==='admin',cloud=!!localStorage.lp_token,bioOn=localStorage.lp_bio==='1';
+  if(admin&&cloud&&S.team===undefined){S.team=null;loadTeam()}
+  v=`<div class="top" style="padding-bottom:30px"><h1>Cuenta</h1></div><div class="card" style="margin-top:-14px"><b>${esc(S.user.name)}</b> <span class="badge" style="background:#e3f3e8">${admin?'Administrador':'Empleado'}</span><br><small style="color:var(--mut)">${esc(S.user.email)}</small>
+  <label>Conexión</label><span class="badge" style="background:${navigator.onLine?'#d9f2e4':'#fde2e8'}">${navigator.onLine?'En línea':'Sin conexión'}</span> <span class="badge" style="background:#fff1c9">${pend} ventas por sincronizar</span>
+  <label>Cuenta</label><span class="badge" style="background:${cloud?'#d9f2e4':'#fff1c9'}">${cloud?'En la nube':'Solo este dispositivo'}</span><br><small style="color:var(--mut)">Servidor: ${esc(API||location.origin)}</small>
+  <label>Seguridad</label>${S.bioOK?`<span class="badge" style="background:${bioOn?'#d9f2e4':'#eef2ef'}">${bioOn?'Bloqueo con biometría activo':'Bloqueo con biometría apagado'}</span><button class="btn ${bioOn?'ghost':'alt'}" style="margin-top:12px" onclick="toggleBio()">${bioOn?'Desactivar bloqueo':'Activar bloqueo con huella o rostro'}</button>`:'<small style="color:var(--mut)">Este dispositivo no tiene huella, rostro ni bloqueo de pantalla configurado.</small>'}
+  <button class="btn ghost" style="color:var(--ink)" onclick="myPwForm()">Cambiar mi contraseña</button><button class="btn" onclick="sync(1)">Sincronizar ahora</button><button class="btn ghost" onclick="logout()">Cerrar sesión</button><button class="btn ghost" style="color:var(--mut);margin-top:8px" onclick="showPrivacy()">Aviso de privacidad</button></div>
+  ${admin?`<div class="card" style="margin:14px 16px 0"><div class="row sp"><b>Cuentas del negocio</b>${cloud?`<button class="badge" style="background:#d9f2e4" onclick="userForm()">+ Nueva cuenta</button>`:''}</div>
+  ${!cloud?'<small style="color:var(--mut)">Para crear cuentas de empleados, inicia sesión con conexión al servidor.</small>'
+  :(S.team===null||S.team===undefined)?'<small style="color:var(--mut)">Cargando…</small>'
+  :S.team==='err'?`<small style="color:var(--red)">No se pudo cargar la lista.</small> <button class="badge" style="background:#eef2ef" onclick="S.team=undefined;draw()">Reintentar</button>`
+  :S.team.map((u,i)=>`<div class="row sp" style="margin-top:12px"><div><b style="font-size:14px">${esc(u.name)}</b><br><small style="color:var(--mut)">${esc(u.email)} · ${u.rol==='admin'?'Administrador':'Empleado'}</small></div>${u.rol==='admin'?'':`<span><button class="badge" style="background:#eef2ef" onclick="pwForm(${u.id})">Contraseña</button> <button class="badge" style="background:#fde2e8;color:var(--red)" onclick="rmUser(${i})">Eliminar</button></span>`}</div>`).join('')
+}</div>`:''}`}
+ A.innerHTML=v+nav();}
+function loginView(){
+ const down=S.srv==='down'&&!S.nLocal;
+ A.innerHTML=`<div class="login"><div class="top"><div class="logo"><i>⬡</i><div><b>LocalPON</b><br><small>Control de inventario</small></div></div><h2>Bienvenido de nuevo</h2><p>Accede para gestionar tu inventario en tiempo real.</p></div>
+ <div class="card">${S.notice?`<div class="err" style="margin:0 0 10px">${esc(S.notice)}</div>`:''}
+ <label>Correo electrónico</label><input class="in" id="em" type="email" placeholder="correo@ejemplo.com" autocomplete="username"><label>Contraseña</label><input class="in" id="pw" type="password" placeholder="••••••••" autocomplete="current-password">
+ <div class="err" id="er"></div><button class="btn" onclick="auth()">Entrar a mi cuenta</button>
+ <div class="row sp" style="margin-top:16px;align-items:flex-start"><button style="color:var(--g);font-size:13px;font-weight:700;text-align:left" onclick="recoverForm()">¿Olvidaste tu contraseña?</button></div>
+ <p style="color:var(--mut);font-size:12px;margin-top:10px">Las cuentas las crea el administrador de tu negocio.${down?' No hay conexión con el servidor.':''}</p><p style="text-align:center;margin-top:14px"><button style="color:var(--mut);font-size:12px;text-decoration:underline" onclick="showPrivacy()">Aviso de privacidad</button></p></div></div>`}
+function redrawLogin(){const v=['em','pw'].map(i=>$('#'+i)?.value||'');draw();['em','pw'].forEach((i,k)=>{const e=$('#'+i);if(e)e.value=v[k]})}
+function lockView(){
+ A.innerHTML=`<div class="login"><div class="top"><div class="logo"><i>⬡</i><div><b>LocalPON</b><br><small>Sesión bloqueada</small></div></div><h2>Hola, ${esc(S.user.name)}</h2><p>Confirma que eres tú para continuar.</p></div>
+ <div class="card"><div class="err" id="er" style="margin:0 0 6px"></div><button class="btn" style="margin-top:6px" onclick="unlock()">Desbloquear con huella o rostro</button><button class="btn ghost" onclick="logout()">Entrar con contraseña</button></div></div>`}
+async function unlock(){if(Bio.busy)return;const ok=await Bio.verify('Desbloquea LocalPON');
+ if(ok){S.locked=false;draw();gateCheck();sync()}else{const e=$('#er');if(e)e.textContent='No se pudo verificar. Intenta de nuevo.'}}
+async function toggleBio(){
+ if(localStorage.lp_bio==='1'){if(await Bio.verify('Confirma para desactivar el bloqueo')){localStorage.removeItem('lp_bio');draw()}return}
+ if(await Bio.enroll()){localStorage.lp_bio='1';draw();alert('Bloqueo activado. La app pedirá tu huella o rostro al abrirse y al volver después de 30 segundos.')}
+ else alert('No se pudo activar el bloqueo. Intenta de nuevo.')}
+const visibleSales=()=>S.user.rol==='admin'?S.V:S.V.filter(s=>s.by===S.user.email);
+function pickSeller(i){S.seller=i<0?'Todos':S.sellerList[i].key;draw()}
+function keep(){const f=S.P.filter(match).filter(p=>S.tab=='inv'||S.cat=='Todos'||p.cat==S.cat);$('#lst').innerHTML=f.slice(0,S.tab=='home'?6:99).map(item).join('')||'<div class="empty">Sin resultados.</div>'}
+/* ---------- acciones ---------- */
+async function api(path,opt={}){const h={'Content-Type':'application/json'};if(localStorage.lp_token)h.Authorization='Bearer '+localStorage.lp_token;
+ const r=await fetch(API+path,{...opt,headers:h,signal:AbortSignal.timeout?AbortSignal.timeout(8000):undefined});let j={};try{j=await r.json()}catch{}j.status=r.status;return j}
+async function checkServer(){try{const j=await api('/api/setup');S.srv=j.ok&&j.db?'ok':'down'}catch{S.srv='down'}
+ if(!S.user&&!S.locked)redrawLogin()}
+async function auth(){const em=$('#em').value.trim().toLowerCase(),pw=$('#pw').value,er=$('#er');
+ if(!em||pw.length<6)return er.textContent='Escribe un correo y una contraseña de 6+ caracteres.';
+ er.textContent='Conectando…';const U=await all('users'),h=await sha(pw),u=U.find(x=>x.email==em);
+ let j=null;try{j=await api('/api/login',{method:'POST',body:JSON.stringify({email:em,password:pw})})}catch{}
+ if(j&&j.ok){const n={email:em,hash:h,name:j.user.name,rol:j.user.rol,owner:String(j.user.owner),priv:j.user.priv,mustChange:!!j.user.mustChange,token:j.token};if(u)n.id=u.id;await put('users',n);return login(n,j.token)}
+ if(j&&j.status&&j.status!=503&&j.status!=404)return er.textContent=j.error||'No se pudo continuar.';
+ if(!u||u.hash!=h||u.local)return er.textContent='Sin conexión al servidor. Solo entran cuentas que ya iniciaron sesión en este dispositivo.';
+ login(u,u.token||'')}
+async function login(u,tok){const owner=u.owner?String(u.owner):'local:'+u.email,prev=localStorage.lp_owner;
+ if(prev&&prev!==owner&&prev!=='local:'+u.email){const d=await db;for(const n of ['products','sales'])await new Promise(r=>{const t=d.transaction(n,'readwrite');t.objectStore(n).clear();t.oncomplete=r});localStorage.removeItem('lp_seed')}
+ localStorage.lp_owner=owner;if(tok)localStorage.lp_token=tok;else localStorage.removeItem('lp_token');
+ S.user={name:u.name,email:u.email,rol:u.rol||'empleado',mustChange:!!u.mustChange};localStorage.lp_user=JSON.stringify(S.user);if(u.priv===PRIV_VER)localStorage['lp_priv_'+u.email]=PRIV_VER;S.tab='home';S.notice='';S.mode='login';S.team=undefined;S.seller='Todos';S.locked=false;await load();draw();gateCheck();sync()}
+async function logout(){try{await sync()}catch{}
+ localStorage.removeItem('lp_user');localStorage.removeItem('lp_token');S.user=null;S.locked=false;S.team=undefined;S.notice='';S.mode='login';S.nLocal=(await all('users')).length;draw();checkServer()}
+async function endSession(msg){const e=S.user&&S.user.email;if(e){const u=(await all('users')).find(x=>x.email==e);if(u&&!u.local)await del('users',u.id)}
+ localStorage.removeItem('lp_user');localStorage.removeItem('lp_token');S.user=null;S.locked=false;S.team=undefined;S.notice=msg||'';S.nLocal=(await all('users')).length;draw();checkServer()}
+/* ---------- cuentas del negocio (solo administrador) ---------- */
+async function loadTeam(){try{const j=await api('/api/users');if(j.status==401)return endSession('Tu sesión terminó. Vuelve a iniciar sesión.');S.team=j.ok?j.users:'err'}catch{S.team='err'}
+ if(S.user&&S.tab=='acc'&&!S.locked&&!document.querySelector('.sheet'))draw()}
+function userForm(){modal(`<h2>Nueva cuenta de empleado</h2><p style="color:var(--mut);font-size:13px;margin-top:6px">Verá y registrará el mismo inventario y las mismas ventas que tú.</p><label>Nombre</label><input class="in" id="un"><label>Correo electrónico</label><input class="in" id="ue" type="email"><label>Contraseña inicial (6 o más caracteres)</label><input class="in" id="up" type="text" autocomplete="off"><div class="err" id="uer"></div><button class="btn" onclick="saveUser()">Crear cuenta</button>`)}
+async function saveUser(){const er=$('#uer'),b={name:$('#un').value.trim(),email:$('#ue').value.trim(),password:$('#up').value};er.textContent='Creando…';
+ try{const j=await api('/api/users',{method:'POST',body:JSON.stringify(b)});
+  if(j.status==401){close();return endSession('Tu sesión terminó. Vuelve a iniciar sesión.')}
+  if(!j.ok)return er.textContent=j.error||'No se pudo crear la cuenta.';
+  close();S.team=undefined;draw()}catch{er.textContent='No se pudo contactar al servidor.'}}
+async function rmUser(i){const u=Array.isArray(S.team)&&S.team[i];if(!u||!confirm('¿Eliminar la cuenta de '+u.name+'? Ya no podrá entrar.'))return;
+ try{const j=await api('/api/users/'+u.id,{method:'DELETE'});if(j.status==401)return endSession('Tu sesión terminó. Vuelve a iniciar sesión.');
+  if(!j.ok)return alert(j.error||'No se pudo eliminar la cuenta.');S.team=undefined;draw()}catch{alert('No se pudo contactar al servidor.')}}
+function myPwForm(){modal(`<h2>Cambiar mi contraseña</h2><label>Contraseña actual</label><input class="in" id="mc" type="password" autocomplete="current-password"><label>Contraseña nueva (6 o más caracteres)</label><input class="in" id="mn" type="password" autocomplete="new-password"><div class="err" id="mer"></div><button class="btn" onclick="saveMyPw()">Guardar contraseña</button>`)}
+async function saveMyPw(){const er=$('#mer'),cur=$('#mc').value,pw=$('#mn').value;
+ if(!cur||pw.length<6)return er.textContent='Escribe tu contraseña actual y una nueva de 6 o más caracteres.';er.textContent='Guardando…';
+ const u=(await all('users')).find(x=>x.email==S.user.email);
+ try{
+  if(localStorage.lp_token){
+   const j=await api('/api/me/password',{method:'POST',body:JSON.stringify({current:cur,password:pw})});
+   if(j.status==401){close();return endSession('Tu sesión terminó. Vuelve a iniciar sesión.')}
+   if(!j.ok)return er.textContent=j.error||'No se pudo cambiar la contraseña.';
+   localStorage.lp_token=j.token;if(u){u.hash=await sha(pw);u.token=j.token;await put('users',u)}
+  }else{
+   if(!u||u.hash!==await sha(cur))return er.textContent='La contraseña actual no es correcta.';
+   u.hash=await sha(pw);await put('users',u)
+  }
+  close();draw();alert('Contraseña cambiada.')
+ }catch{er.textContent='No se pudo contactar al servidor.'}}
+function doneSheet(){close();draw()}
+function pwForm(id){modal(`<h2>Nueva contraseña</h2><p style="color:var(--mut);font-size:13px;margin-top:6px">Si ese empleado tiene la sesión abierta, tendrá que volver a entrar.</p><label>Contraseña nueva (6 o más caracteres)</label><input class="in" id="np" type="text" autocomplete="off"><div class="err" id="ner"></div><button class="btn" onclick="savePw(${id})">Guardar contraseña</button>`)}
+async function savePw(id){const er=$('#ner'),pw=$('#np').value;if(pw.length<6)return er.textContent='La contraseña debe tener 6 o más caracteres.';er.textContent='Guardando…';
+ try{const j=await api('/api/users/'+id+'/password',{method:'POST',body:JSON.stringify({password:pw})});
+  if(j.status==401){close();return endSession('Tu sesión terminó. Vuelve a iniciar sesión.')}
+  if(!j.ok)return er.textContent=j.error||'No se pudo cambiar la contraseña.';
+  close();S.team=undefined;draw();alert('Contraseña cambiada.')}catch{er.textContent='No se pudo contactar al servidor.'}}
+function recoverForm(){modal(`<h2>Recuperar administrador</h2><p style="color:var(--mut);font-size:13px;margin-top:6px">Necesitas el código secreto del servidor: el valor de ADMIN_CODE o el código que imprime la terminal al iniciar. Si eres empleado, pide al administrador que restablezca tu contraseña.</p><label>Correo del administrador</label><input class="in" id="re" type="email" value="${esc($('#em')?.value||'')}"><label>Código secreto</label><input class="in" id="rc" autocomplete="off" autocapitalize="characters"><label>Contraseña nueva (6 o más caracteres)</label><input class="in" id="rp" type="password" autocomplete="new-password"><div class="err" id="rer"></div><button class="btn" onclick="doRecover()">Cambiar contraseña</button>`)}
+async function doRecover(){const er=$('#rer'),em=$('#re').value.trim().toLowerCase(),cd=$('#rc').value.trim(),pw=$('#rp').value;
+ if(!em||!cd||pw.length<6)return er.textContent='Completa los tres campos (contraseña de 6 o más caracteres).';er.textContent='Cambiando…';
+ try{const j=await api('/api/recover',{method:'POST',body:JSON.stringify({email:em,code:cd,password:pw})});
+  if(!j.ok)return er.textContent=j.error||'No se pudo cambiar la contraseña.';
+  const u=(await all('users')).find(x=>x.email==em);if(u){u.hash=await sha(pw);delete u.token;await put('users',u)}
+  close();S.notice='Contraseña actualizada. Ya puedes entrar.';redrawLogin()}catch{er.textContent='No se pudo contactar al servidor.'}}
+/* ---------- aviso de privacidad ---------- */
+// Completa estos datos con los del responsable real antes de usar la app con clientes.
+const PRIVACY={responsable:'[NOMBRE O RAZÓN SOCIAL DEL RESPONSABLE]',domicilio:'[DOMICILIO DEL RESPONSABLE]',contacto:'[CORREO DE CONTACTO PARA PRIVACIDAD]',fecha:'21 de octubre de 2026'};
+const PRIV_VER='2026-10'; // súbela cuando cambie el texto: todas las cuentas tendrán que aceptarlo de nuevo
+function privacyHtml(){const P=PRIVACY;return `<p><b>Última actualización:</b> ${esc(P.fecha)}</p>
+<h3>1. Responsable de tus datos</h3><p>${esc(P.responsable)}, con domicilio en ${esc(P.domicilio)}, es responsable del tratamiento de los datos personales que se recaban a través de LocalPON, conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares.</p>
+<h3>2. Datos personales que recabamos</h3><ul><li>De las personas usuarias: nombre, correo electrónico y contraseña (se guarda cifrada, nunca en texto legible).</li><li>De la operación del negocio: inventario, ventas, quién registró cada venta, fecha y forma de pago.</li><li>De clientes con venta a crédito (“fiado”): el nombre que captura el negocio.</li></ul>
+<p>No recabamos datos personales sensibles. Si activas el bloqueo con huella o rostro, la verificación la hace tu dispositivo: LocalPON solo recibe “correcto” o “incorrecto” y nunca ve ni guarda tu huella ni tu rostro.</p>
+<h3>3. Para qué usamos tus datos</h3><ul><li>Crear y administrar tu cuenta y el acceso de tu equipo.</li><li>Registrar inventario y ventas, y mostrar reportes al administrador del negocio.</li><li>Sincronizar la información entre tus dispositivos.</li><li>Dar seguridad a la cuenta, por ejemplo cerrar sesiones al cambiar una contraseña.</li></ul><p>No usamos tus datos para publicidad ni los vendemos.</p>
+<h3>4. Quién puede ver tu información</h3><p>El administrador del negocio ve el inventario y las ventas de todo su equipo, incluyendo quién registró cada venta. Cada empleado ve solo sus propias ventas. No compartimos datos con terceros, salvo con los proveedores de alojamiento y base de datos que almacenan la información por cuenta nuestra.</p>
+<h3>5. Datos de clientes del negocio</h3><p>El nombre de las personas a quienes se vende a crédito lo captura el negocio. Cada negocio es responsable de informarles y de contar con su autorización.</p>
+<h3>6. Tus derechos (ARCO)</h3><p>Puedes acceder a tus datos, rectificarlos, cancelarlos u oponerte a su uso, y revocar tu consentimiento, escribiendo a ${esc(P.contacto)}. Atenderemos tu solicitud en el plazo que marca la ley.</p>
+<h3>7. Seguridad y conservación</h3><p>Protegemos los datos con contraseñas cifradas, sesiones que se cierran al cambiar la contraseña y conexión cifrada (HTTPS) cuando la app está publicada. Al eliminar una cuenta se borra su acceso; las ventas que registró se conservan en el historial del negocio y, si pides la cancelación de tus datos, se dejarán sin tu nombre.</p>
+<h3>8. Cambios a este aviso</h3><p>Si el aviso cambia, la app te lo mostrará de nuevo para que lo aceptes.</p>`}
+function showPrivacy(){modal(`<h2>Aviso de privacidad</h2><div class="priv">${privacyHtml()}</div><button class="btn" onclick="shut()">Cerrar</button>`)}
+function shut(){close()}
+const privOk=()=>!!S.user&&localStorage['lp_priv_'+S.user.email]===PRIV_VER;
+function gateCheck(){if(!S.user||S.locked)return;if(S.user.mustChange)return pwGate();if(!privOk())privacyGate()}
+function pwGate(){if(document.querySelector('.sheet.gatepw'))return;const m=document.createElement('div');m.className='sheet gatepw';
+ m.innerHTML=`<div><h2>Cambia tu contraseña</h2><p style="color:var(--mut);font-size:13px;margin-top:6px">Entraste con una contraseña temporal. Por seguridad debes elegir una nueva antes de continuar.</p><label>Contraseña temporal (la actual)</label><input class="in" id="gc" type="password" autocomplete="current-password"><label>Contraseña nueva (6 o más caracteres)</label><input class="in" id="gn" type="password" autocomplete="new-password"><div class="err" id="ger"></div><button class="btn" onclick="saveGatePw()">Guardar y continuar</button><button class="btn ghost" style="color:var(--mut)" onclick="document.querySelector('.sheet.gatepw').remove();logout()">Cerrar sesión</button></div>`;document.body.append(m)}
+async function saveGatePw(){const er=$('#ger'),cur=$('#gc').value,pw=$('#gn').value;
+ if(!cur||pw.length<6)return er.textContent='Escribe la contraseña actual y una nueva de 6 o más caracteres.';
+ if(pw===cur)return er.textContent='La nueva contraseña debe ser distinta a la actual.';er.textContent='Guardando…';
+ try{const j=await api('/api/me/password',{method:'POST',body:JSON.stringify({current:cur,password:pw})});
+  if(j.status==401){document.querySelector('.sheet.gatepw')?.remove();return endSession('Tu sesión terminó. Vuelve a iniciar sesión.')}
+  if(!j.ok)return er.textContent=j.error||'No se pudo cambiar la contraseña.';
+  localStorage.lp_token=j.token;const u=(await all('users')).find(x=>x.email==S.user.email);if(u){u.hash=await sha(pw);u.token=j.token;u.mustChange=false;await put('users',u)}
+  S.user.mustChange=false;localStorage.lp_user=JSON.stringify(S.user);document.querySelector('.sheet.gatepw')?.remove();gateCheck();sync()
+ }catch{er.textContent='No se pudo contactar al servidor.'}}
+function privacyGate(){if(document.querySelector('.sheet.gate'))return;const m=document.createElement('div');m.className='sheet gate';
+ m.innerHTML=`<div><h2>Aviso de privacidad</h2><p style="color:var(--mut);font-size:13px;margin-top:4px">Léelo y acéptalo para usar LocalPON.</p><div class="priv">${privacyHtml()}</div><button class="btn" onclick="acceptPrivacy()">Acepto el aviso de privacidad</button><button class="btn ghost" style="color:var(--mut)" onclick="declinePrivacy()">No acepto (cerrar sesión)</button></div>`;document.body.append(m)}
+function acceptPrivacy(){localStorage['lp_priv_'+S.user.email]=PRIV_VER;document.querySelector('.sheet.gate')?.remove();
+ if(localStorage.lp_token)api('/api/me/privacy',{method:'POST',body:JSON.stringify({version:PRIV_VER})}).catch(()=>{})}
+async function declinePrivacy(){document.querySelector('.sheet.gate')?.remove();await logout()}
+/* ---------- biometría ---------- */
+// Android (APK): plugin nativo BiometricPrompt. Web/iPhone (PWA): WebAuthn con autenticador de la plataforma (Face ID, Touch ID, Windows Hello).
+// Funciona como bloqueo de pantalla de la app: confirma que el dueño del dispositivo está presente.
+const b64=b=>btoa(String.fromCharCode(...new Uint8Array(b))),unb64=t=>Uint8Array.from(atob(t),c=>c.charCodeAt(0));
+const Bio={busy:false,last:0,
+ native:()=>!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()),
+ async available(){
+  if(Bio.native()){try{const r=await Capacitor.nativePromise('BiometricAuthNative','checkBiometry',{});return !!(r.isAvailable||r.deviceIsSecure)}catch{return false}}
+  try{return !!(window.PublicKeyCredential&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())}catch{return false}},
+ async verify(reason){Bio.busy=true;
+  try{
+   if(Bio.native()){await Capacitor.nativePromise('BiometricAuthNative','internalAuthenticate',{reason,cancelTitle:'Cancelar',allowDeviceCredential:true,androidTitle:'LocalPON',androidSubtitle:reason});return true}
+   if(!localStorage.lp_cred)return false;
+   await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:unb64(localStorage.lp_cred),transports:['internal']}],userVerification:'required',timeout:60000}});return true
+  }catch{return false}finally{Bio.last=Date.now();setTimeout(()=>{Bio.busy=false},1500)}},
+ async enroll(){
+  if(Bio.native())return Bio.verify('Confirma para activar el bloqueo');
+  Bio.busy=true;
+  try{const c=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:'LocalPON'},user:{id:crypto.getRandomValues(new Uint8Array(16)),name:S.user.email,displayName:S.user.name},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required'},timeout:60000}});
+   localStorage.lp_cred=b64(c.rawId);return true}catch{return false}finally{Bio.last=Date.now();setTimeout(()=>{Bio.busy=false},1500)}}};
+const needLock=()=>localStorage.lp_bio==='1'&&(Bio.native()||!!localStorage.lp_cred);
+function modal(h){const m=document.createElement('div');m.className='sheet';m.innerHTML=`<div>${h}</div>`;m.onclick=e=>{if(e.target==m){m.remove();if(S.user&&S.tab=='acc'&&!S.locked)draw()}};document.body.append(m)}
+const close=()=>document.querySelector('.sheet')?.remove();
+function prodForm(id){const p=S.P.find(x=>x.id==id)||{name:'',sku:'',cat:'Herramientas',price:'',qty:''};
+ modal(`<h2>${id?'Editar':'Nuevo'} producto</h2><label>Nombre</label><input class="in" id="pn" value="${esc(p.name)}"><div class="g2"><div><label>SKU</label><input class="in" id="ps" value="${esc(p.sku)}" ${id?'readonly':''}></div><div><label>Categoría</label><select class="in" id="pc">${Object.keys(CAT).map(c=>`<option ${c==p.cat?'selected':''}>${c}</option>`).join('')}</select></div><div><label>Precio</label><input class="in" id="pp" type="number" min="0" step="0.01" value="${p.price}"></div><div><label>Existencias</label><input class="in" id="pq" type="number" min="0" value="${p.qty}"></div></div><div class="err" id="pe"></div>
+ <button class="btn" onclick="saveProd(${id||0})">Guardar</button>${id?`<button class="btn ghost" onclick="rmProd(${id})">Eliminar producto</button>`:''}`)}
+async function saveProd(id){const n=$('#pn').value.trim(),s=$('#ps').value.trim().toUpperCase();
+ if(!n||!s)return $('#pe').textContent='Nombre y SKU son obligatorios.';
+ const pr=Number($('#pp').value),qt=Number($('#pq').value);
+ if($('#pp').value===''||!Number.isFinite(pr)||pr<0)return $('#pe').textContent='El precio debe ser 0 o mayor.';
+ if($('#pq').value===''||!Number.isInteger(qt)||qt<0)return $('#pe').textContent='Las existencias deben ser un número entero de 0 o más.';
+ if(S.P.some(p=>p.sku==s&&p.id!=id))return $('#pe').textContent='Ese SKU ya existe.';
+ const o={name:n,sku:s,cat:$('#pc').value,price:+$('#pp').value||0,qty:+$('#pq').value||0,updated:Date.now()};if(id)o.id=id;else{const t=S.PA.find(p=>p.sku==s&&p.deleted);if(t)o.id=t.id}await put('products',o);close();await load();draw();sync()}
+async function rmProd(id){const p=S.P.find(x=>x.id==id);if(p&&confirm('¿Eliminar este producto?')){p.deleted=1;p.updated=Date.now();await put('products',p);close();await load();draw();sync()}}
+function scanForm(){modal(`<h2>Escanear producto</h2><label>SKU o código</label><input class="in" id="ss" placeholder="HER-0241" list="sk"><datalist id="sk">${S.P.map(p=>`<option value="${esc(p.sku)}">${esc(p.name)}`).join('')}</datalist>
+ <div class="g2"><div><label>Movimiento</label><select class="in" id="sm" onchange="$('#sf').style.display=this.value=='out'?'block':'none'"><option value="out">Salida (venta)</option><option value="in">Entrada</option></select></div><div><label>Cantidad</label><input class="in" id="sq" type="number" min="1" value="1"></div></div>
+ <div id="sf"><label>Forma de pago</label><select class="in" id="sp" onchange="$('#sc').style.display=this.value=='fiado'?'block':'none'"><option value="efectivo">Efectivo</option><option value="fiado">Fiado</option></select><input class="in" id="sc" placeholder="Nombre del cliente" style="display:none;margin-top:8px"></div>
+ <div class="err" id="se"></div><button class="btn" onclick="doScan()">Registrar</button>`)}
+async function doScan(){const p=S.P.find(x=>x.sku==$('#ss').value.trim().toUpperCase()),q=+$('#sq').value,out=$('#sm').value=='out',e=$('#se');
+ if(!p)return e.textContent='No existe un producto con ese SKU.';if(q<1)return e.textContent='La cantidad debe ser 1 o más.';
+ if(out&&q>p.qty)return e.textContent=`Solo hay ${p.qty} uds. disponibles.`;
+ const fi=out&&$('#sp').value=='fiado',cl=$('#sc').value.trim();if(fi&&!cl)return e.textContent='Escribe el nombre del cliente.';
+ p.qty+=out?-q:q;p.updated=Date.now();await put('products',p);
+ if(out)await put('sales',{uid:Date.now()+'-'+Math.random().toString(36).slice(2,7),ts:Date.now(),sku:p.sku,name:p.name,qty:q,total:q*p.price,pago:fi?'fiado':'efectivo',cliente:cl,by:S.user.email,byName:S.user.name,synced:0});
+ close();await load();draw();sync()}
+let syncing=0;
+async function sync(manual){
+ if(!S.user)return;
+ if(!localStorage.lp_token){if(manual)alert('Esta cuenta solo existe en este dispositivo. Cierra sesión y vuelve a crearla con conexión al servidor.');return}
+ if(!navigator.onLine){if(manual)alert('Sin conexión. Se sincronizará al reconectar.');return}
+ if(syncing)return;syncing=1;
+ try{const pend=S.V.filter(s=>!s.synced&&(!s.by||s.by===S.user.email)),
+  j=await api('/api/sync',{method:'POST',body:JSON.stringify({products:S.PA.map(p=>({sku:p.sku,name:p.name,cat:p.cat,price:p.price,qty:p.qty,updated:p.updated||0,deleted:p.deleted?1:0})),sales:pend.map(({uid,ts,sku,name,qty,total,pago,cliente})=>({uid,ts,sku,name,qty,total,pago,cliente}))})});
+  if(j.status==401){await endSession('Tu sesión terminó. Vuelve a iniciar sesión.');return}
+  if(!j.ok){if(manual)alert('Servidor: '+(j.error||'error'));return}
+  for(const s of pend){s.synced=1;await put('sales',s)}
+  const lp=new Map(S.PA.map(p=>[p.sku,p]));
+  for(const sp of j.products){const l=lp.get(sp.sku),d={name:sp.name,cat:sp.cat,price:sp.price,qty:sp.qty,updated:sp.updated,deleted:sp.deleted?1:0};
+   if(!l)await put('products',{sku:sp.sku,...d});else if(sp.updated>(l.updated||0)){Object.assign(l,d);await put('products',l)}}
+  const have=new Set(S.V.map(s=>s.uid));
+  for(const s of j.sales)if(!have.has(s.uid))await put('sales',{...s,synced:1});
+  await load();if(manual)alert('Sincronizado correctamente.');
+  if(!S.locked&&!document.querySelector('.sheet')&&!/INPUT|SELECT/.test(document.activeElement?.tagName||''))draw()
+ }catch{if(manual)alert('No se pudo contactar al servidor.')}finally{syncing=0}}
+function exportCsv(){const c=['fecha,producto,cantidad,total,pago,cliente,vendedor',...visibleSales().map(s=>[new Date(s.ts).toISOString(),s.name,s.qty,s.total,s.pago,s.cliente,s.byName||s.by||S.user.name].map(x=>`"${x??''}"`).join(','))].join('\n');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:'text/csv'}));a.download='ventas.csv';a.click()}
+addEventListener('online',()=>{checkServer();sync();if(S.user&&S.tab=='acc'&&!S.locked)draw()});addEventListener('offline',()=>S.tab=='acc'&&draw());
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
+S.locked=!!S.user&&needLock();
+load().then(async()=>{S.nLocal=(await all('users')).length;draw();if(S.locked){if(Bio.native())unlock()}else{gateCheck();sync()}checkServer()});
+Bio.available().then(v=>{S.bioOK=v;if(S.user&&S.tab=='acc'&&!S.locked)draw()});
+setInterval(()=>{if(S.user&&!S.locked&&navigator.onLine)sync()},20000);
+let hiddenAt=0;
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden){hiddenAt=Date.now();return}
+ if(S.user&&!S.locked&&needLock()&&hiddenAt&&!Bio.busy&&Date.now()-Bio.last>2000&&Date.now()-hiddenAt>30000){S.locked=true;draw();if(Bio.native())unlock();hiddenAt=0;return}
+ hiddenAt=0;if(S.user&&!S.locked)sync()});
+</script></body></html>

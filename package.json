@@ -1,0 +1,26 @@
+{
+  "name": "localpon",
+  "version": "1.0.0",
+  "description": "LocalPON - POS/PWA para pequeños comercios",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "sync": "cap sync android",
+    "android": "cap open android"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@aparajita/capacitor-biometric-auth": "^10.0.0",
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "bcryptjs": "^3.0.3",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.11.5"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.3"
+  }
+}

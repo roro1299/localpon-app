@@ -1,0 +1,7 @@
+{
+  "appId": "com.localpon.app",
+  "appName": "LocalPON",
+  "webDir": "public",
+  "server": { "androidScheme": "https", "cleartext": true },
+  "android": { "allowMixedContent": true }
+}
