@@ -266,7 +266,7 @@ async function saveProd(id){const n=$('#pn').value.trim(),s=$('#ps').value.trim(
  const pr=Number($('#pp').value),qt=Number($('#pq').value);
  if($('#pp').value===''||!Number.isFinite(pr)||pr<0)return $('#pe').textContent='El precio debe ser 0 o mayor.';
  if($('#pq').value===''||!Number.isInteger(qt)||qt<0)return $('#pe').textContent='Las existencias deben ser un número entero de 0 o más.';
- if(S.P.some(p=>p.sku==s&&p.id!=id))return $('#pe').textContent='Ese SKU ya existe.';
+ if(S.P.some(p=>mismoSku(p.sku,s)&&p.id!=id))return $('#pe').textContent='Ese SKU ya existe.';
  const o={name:n,sku:s,cat:$('#pc').value,price:+$('#pp').value||0,qty:+$('#pq').value||0,updated:Date.now()};if(id)o.id=id;else{const t=S.PA.find(p=>p.sku==s&&p.deleted);if(t)o.id=t.id}await put('products',o);close();await load();draw();sync()}
 async function rmProd(id){const p=S.P.find(x=>x.id==id);if(p&&confirm('¿Eliminar este producto?')){p.deleted=1;p.updated=Date.now();await put('products',p);close();await load();draw();sync()}}
 let ZR=null;
@@ -280,15 +280,18 @@ function camScan(onCode){
  ZR.decodeFromConstraints({video:{facingMode:{ideal:'environment'}}},'camv',(r)=>{if(r){const v=String(r.getText()).trim();camStop();try{navigator.vibrate&&navigator.vibrate(80)}catch{}onCode(v)}}).catch(()=>{camStop();alert('No se pudo abrir la cámara. Revisa que la app tenga permiso de cámara.')});
 }
 const scanBtn=t=>`<button type="button" class="scanbtn" aria-label="Escanear con la cámara" onclick="${t}">📷</button>`;
-function nomDe(v){const p=S.P.find(x=>x.sku==String(v).trim().toUpperCase());const e=$('#sn');if(e)e.textContent=p?`${p.name} · ${p.qty} uds. · $${p.price}`:(v?'Código nuevo, no está en el inventario':'')}
+const normSku=s=>String(s).trim().toUpperCase().replace(/\s+/g,'');
+const mismoSku=(a,b)=>{a=normSku(a);b=normSku(b);if(a==b)return true;return /^\d+$/.test(a)&&/^\d+$/.test(b)&&a.replace(/^0+/,'')==b.replace(/^0+/,'')};
+const buscaSku=v=>v&&S.P.find(x=>mismoSku(x.sku,v));
+function nomDe(v){const p=buscaSku(v);const e=$('#sn');if(e)e.textContent=p?`${p.name} · ${p.qty} uds. · $${p.price}`:(v?'Código nuevo, no está en el inventario':'')}
 function scanSku(){camScan(v=>{$('#ss').value=v;nomDe(v)})}
 function scanProd(){camScan(v=>{$('#ps').value=v})}
 function scanForm(){modal(`<h2>Escanear producto</h2><label>SKU o código</label><div class="scanrow"><input class="in" id="ss" placeholder="HER-0241" list="sk" oninput="nomDe(this.value)">${scanBtn('scanSku()')}</div><small class="sn" id="sn"></small><datalist id="sk">${S.P.map(p=>`<option value="${esc(p.sku)}">${esc(p.name)}`).join('')}</datalist>
  <div class="g2"><div><label>Movimiento</label><select class="in" id="sm" onchange="$('#sf').style.display=this.value=='out'?'block':'none'"><option value="out">Salida (venta)</option><option value="in">Entrada</option></select></div><div><label>Cantidad</label><input class="in" id="sq" type="number" min="1" value="1"></div></div>
  <div id="sf"><label>Forma de pago</label><select class="in" id="sp" onchange="$('#sc').style.display=this.value=='fiado'?'block':'none'"><option value="efectivo">Efectivo</option><option value="fiado">Fiado</option></select><input class="in" id="sc" placeholder="Nombre del cliente" style="display:none;margin-top:8px"></div>
  <div class="err" id="se"></div><button class="btn" onclick="doScan()">Registrar</button>`)}
-async function doScan(){const p=S.P.find(x=>x.sku==$('#ss').value.trim().toUpperCase()),q=+$('#sq').value,out=$('#sm').value=='out',e=$('#se');
- if(!p)return e.textContent='No existe un producto con ese SKU.';if(q<1)return e.textContent='La cantidad debe ser 1 o más.';
+async function doScan(){const cod=$('#ss').value.trim(),p=buscaSku(cod),q=+$('#sq').value,out=$('#sm').value=='out',e=$('#se');
+ if(!p)return e.textContent=`No hay un producto con el SKU "${cod}". Revisa que el SKU guardado sea ese mismo código.`;if(q<1)return e.textContent='La cantidad debe ser 1 o más.';
  if(out&&q>p.qty)return e.textContent=`Solo hay ${p.qty} uds. disponibles.`;
  const fi=out&&$('#sp').value=='fiado',cl=$('#sc').value.trim();if(fi&&!cl)return e.textContent='Escribe el nombre del cliente.';
  p.qty+=out?-q:q;p.updated=Date.now();await put('products',p);
