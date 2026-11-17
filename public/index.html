@@ -42,6 +42,7 @@ label{display:block;font-size:12px;font-weight:700;margin:12px 0 6px}
 .in{width:100%;height:46px;border:1px solid var(--ln);border-radius:12px;padding:0 12px;background:#fff;outline:0}.in:focus{border-color:var(--g)}
 .btn{width:100%;height:48px;border-radius:12px;background:var(--gd);color:#fff;font-weight:700;margin-top:18px}.btn.alt{background:var(--o);color:#3a2600}.btn.ghost{background:#fff;border:1px solid var(--ln);color:var(--red)}
 .err{color:var(--red);font-size:12px;margin-top:10px;min-height:14px}
+.camov{position:fixed;inset:0;background:#000;z-index:20;display:flex;flex-direction:column}.camov video{flex:1;width:100%;min-height:0;object-fit:cover}.camov .camx{padding:16px;background:#000;color:#fff;text-align:center}.camov .camx p{margin:0 0 10px}.scanrow{display:flex;gap:8px}.scanrow .in{flex:1}.scanbtn{border:0;border-radius:12px;background:#123a29;color:#fff;font-size:20px;padding:0 14px;cursor:pointer}.sn{display:block;min-height:18px;margin-top:4px;color:#286b4b;font-weight:600}
 .sheet{position:fixed;inset:0;background:#0007;display:flex;align-items:flex-end;justify-content:center;z-index:9}
 .sheet>div{background:#fff;width:100%;max-width:430px;border-radius:24px 24px 0 0;padding:20px;max-height:90vh;overflow:auto;animation:up .2s}
 @keyframes up{from{transform:translateY(30px);opacity:0}}
@@ -53,9 +54,10 @@ button:disabled{opacity:.6;cursor:default}
 .badge{border:0}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
 </style></head><body><div id="app"></div>
+<script src="zxing.min.js"></script>
 <script>
 const $=s=>document.querySelector(s),A=$('#app');
-const PROD_URL=''; // <- URL publicada del servidor, ej. 'https://localpon.up.railway.app' (solo para la APK)
+const PROD_URL='https://localpon-app.onrender.com'; // <- URL publicada del servidor, ej. 'https://localpon.up.railway.app' (solo para la APK)
 const API=localStorage.lp_api||(window.Capacitor?(PROD_URL||'http://10.0.2.2:3000'):'');
 /* ---------- IndexedDB ---------- */
 const db=new Promise(r=>{const q=indexedDB.open('localpon',1);q.onupgradeneeded=()=>['products','sales','users'].forEach(n=>q.result.createObjectStore(n,{keyPath:'id',autoIncrement:true}));q.onsuccess=()=>r(q.result)});
@@ -144,10 +146,10 @@ async function checkServer(){try{const j=await api('/api/setup');S.srv=j.ok&&j.d
 async function auth(){const em=$('#em').value.trim().toLowerCase(),pw=$('#pw').value,er=$('#er');
  if(!em||pw.length<6)return er.textContent='Escribe un correo y una contraseña de 6+ caracteres.';
  er.textContent='Conectando…';const U=await all('users'),h=await sha(pw),u=U.find(x=>x.email==em);
- let j=null;try{j=await api('/api/login',{method:'POST',body:JSON.stringify({email:em,password:pw})})}catch{}
+ let j=null,ce='';try{j=await api('/api/login',{method:'POST',body:JSON.stringify({email:em,password:pw})})}catch(e){ce=String(e&&e.message||e)}
  if(j&&j.ok){const n={email:em,hash:h,name:j.user.name,rol:j.user.rol,owner:String(j.user.owner),priv:j.user.priv,mustChange:!!j.user.mustChange,token:j.token};if(u)n.id=u.id;await put('users',n);return login(n,j.token)}
  if(j&&j.status&&j.status!=503&&j.status!=404)return er.textContent=j.error||'No se pudo continuar.';
- if(!u||u.hash!=h||u.local)return er.textContent='Sin conexión al servidor. Solo entran cuentas que ya iniciaron sesión en este dispositivo.';
+ if(!u||u.hash!=h||u.local)return er.textContent='Sin conexión al servidor. Solo entran cuentas que ya iniciaron sesión en este dispositivo. ['+(API||'mismo servidor')+' · '+(ce||('HTTP '+(j&&j.status)))+']';
  login(u,u.token||'')}
 async function login(u,tok){const owner=u.owner?String(u.owner):'local:'+u.email,prev=localStorage.lp_owner;
  if(prev&&prev!==owner&&prev!=='local:'+u.email){const d=await db;for(const n of ['products','sales'])await new Promise(r=>{const t=d.transaction(n,'readwrite');t.objectStore(n).clear();t.oncomplete=r});localStorage.removeItem('lp_seed')}
@@ -257,7 +259,7 @@ const needLock=()=>localStorage.lp_bio==='1'&&(Bio.native()||!!localStorage.lp_c
 function modal(h){const m=document.createElement('div');m.className='sheet';m.innerHTML=`<div>${h}</div>`;m.onclick=e=>{if(e.target==m){m.remove();if(S.user&&S.tab=='acc'&&!S.locked)draw()}};document.body.append(m)}
 const close=()=>document.querySelector('.sheet')?.remove();
 function prodForm(id){const p=S.P.find(x=>x.id==id)||{name:'',sku:'',cat:'Herramientas',price:'',qty:''};
- modal(`<h2>${id?'Editar':'Nuevo'} producto</h2><label>Nombre</label><input class="in" id="pn" value="${esc(p.name)}"><div class="g2"><div><label>SKU</label><input class="in" id="ps" value="${esc(p.sku)}" ${id?'readonly':''}></div><div><label>Categoría</label><select class="in" id="pc">${Object.keys(CAT).map(c=>`<option ${c==p.cat?'selected':''}>${c}</option>`).join('')}</select></div><div><label>Precio</label><input class="in" id="pp" type="number" min="0" step="0.01" value="${p.price}"></div><div><label>Existencias</label><input class="in" id="pq" type="number" min="0" value="${p.qty}"></div></div><div class="err" id="pe"></div>
+ modal(`<h2>${id?'Editar':'Nuevo'} producto</h2><label>Nombre</label><input class="in" id="pn" value="${esc(p.name)}"><div class="g2"><div><label>SKU / código de barras</label><div class="scanrow"><input class="in" id="ps" value="${esc(p.sku)}" ${id?'readonly':''}>${id?'':scanBtn('scanProd()')}</div></div><div><label>Categoría</label><select class="in" id="pc">${Object.keys(CAT).map(c=>`<option ${c==p.cat?'selected':''}>${c}</option>`).join('')}</select></div><div><label>Precio</label><input class="in" id="pp" type="number" min="0" step="0.01" value="${p.price}"></div><div><label>Existencias</label><input class="in" id="pq" type="number" min="0" value="${p.qty}"></div></div><div class="err" id="pe"></div>
  <button class="btn" onclick="saveProd(${id||0})">Guardar</button>${id?`<button class="btn ghost" onclick="rmProd(${id})">Eliminar producto</button>`:''}`)}
 async function saveProd(id){const n=$('#pn').value.trim(),s=$('#ps').value.trim().toUpperCase();
  if(!n||!s)return $('#pe').textContent='Nombre y SKU son obligatorios.';
@@ -267,7 +269,21 @@ async function saveProd(id){const n=$('#pn').value.trim(),s=$('#ps').value.trim(
  if(S.P.some(p=>p.sku==s&&p.id!=id))return $('#pe').textContent='Ese SKU ya existe.';
  const o={name:n,sku:s,cat:$('#pc').value,price:+$('#pp').value||0,qty:+$('#pq').value||0,updated:Date.now()};if(id)o.id=id;else{const t=S.PA.find(p=>p.sku==s&&p.deleted);if(t)o.id=t.id}await put('products',o);close();await load();draw();sync()}
 async function rmProd(id){const p=S.P.find(x=>x.id==id);if(p&&confirm('¿Eliminar este producto?')){p.deleted=1;p.updated=Date.now();await put('products',p);close();await load();draw();sync()}}
-function scanForm(){modal(`<h2>Escanear producto</h2><label>SKU o código</label><input class="in" id="ss" placeholder="HER-0241" list="sk"><datalist id="sk">${S.P.map(p=>`<option value="${esc(p.sku)}">${esc(p.name)}`).join('')}</datalist>
+let ZR=null;
+function camStop(){try{ZR&&ZR.reset()}catch{}ZR=null;document.querySelector('.camov')?.remove()}
+function camScan(onCode){
+ if(!window.ZXing||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){alert('Este dispositivo no permite usar la cámara aquí.');return}
+ const o=document.createElement('div');o.className='camov';o.innerHTML='<video id="camv" playsinline muted></video><div class="camx"><p>Apunta al código de barras</p><button class="btn ghost" id="camc" type="button">Cancelar</button></div>';document.body.append(o);
+ $('#camc').onclick=camStop;
+ const F=ZXing.BarcodeFormat,hints=new Map();hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[F.EAN_13,F.EAN_8,F.UPC_A,F.UPC_E,F.CODE_128,F.CODE_39,F.ITF,F.QR_CODE]);
+ ZR=new ZXing.BrowserMultiFormatReader(hints,250);
+ ZR.decodeFromConstraints({video:{facingMode:{ideal:'environment'}}},'camv',(r)=>{if(r){const v=String(r.getText()).trim();camStop();try{navigator.vibrate&&navigator.vibrate(80)}catch{}onCode(v)}}).catch(()=>{camStop();alert('No se pudo abrir la cámara. Revisa que la app tenga permiso de cámara.')});
+}
+const scanBtn=t=>`<button type="button" class="scanbtn" aria-label="Escanear con la cámara" onclick="${t}">📷</button>`;
+function nomDe(v){const p=S.P.find(x=>x.sku==String(v).trim().toUpperCase());const e=$('#sn');if(e)e.textContent=p?`${p.name} · ${p.qty} uds. · $${p.price}`:(v?'Código nuevo, no está en el inventario':'')}
+function scanSku(){camScan(v=>{$('#ss').value=v;nomDe(v)})}
+function scanProd(){camScan(v=>{$('#ps').value=v})}
+function scanForm(){modal(`<h2>Escanear producto</h2><label>SKU o código</label><div class="scanrow"><input class="in" id="ss" placeholder="HER-0241" list="sk" oninput="nomDe(this.value)">${scanBtn('scanSku()')}</div><small class="sn" id="sn"></small><datalist id="sk">${S.P.map(p=>`<option value="${esc(p.sku)}">${esc(p.name)}`).join('')}</datalist>
  <div class="g2"><div><label>Movimiento</label><select class="in" id="sm" onchange="$('#sf').style.display=this.value=='out'?'block':'none'"><option value="out">Salida (venta)</option><option value="in">Entrada</option></select></div><div><label>Cantidad</label><input class="in" id="sq" type="number" min="1" value="1"></div></div>
  <div id="sf"><label>Forma de pago</label><select class="in" id="sp" onchange="$('#sc').style.display=this.value=='fiado'?'block':'none'"><option value="efectivo">Efectivo</option><option value="fiado">Fiado</option></select><input class="in" id="sc" placeholder="Nombre del cliente" style="display:none;margin-top:8px"></div>
  <div class="err" id="se"></div><button class="btn" onclick="doScan()">Registrar</button>`)}
